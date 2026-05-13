@@ -153,7 +153,8 @@ class FeedHeadlineCursorHelper extends MainCursorHelper {
 			query.append(DBHelper.TABLE_ARTICLES).append(" b, ");
 			query.append(DBHelper.TABLE_ARTICLES2LABELS).append(" b2m, ");
 			query.append(DBHelper.TABLE_FEEDS).append(" m ");
-			query.append("WHERE f._id=a.feedId AND b2m.labelId=m._id AND b2m.articleId=b._id");
+			query.append("WHERE f._id=b.feedId AND b2m.labelId=m._id AND b2m.articleId=b._id");
+			query.append(" AND b2m.labelId=").append(feedId);
 			query.append(" AND b._id IN (").append(lastOpenedArticlesList).append(" )");
 		}
 

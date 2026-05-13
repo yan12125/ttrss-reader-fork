@@ -1052,12 +1052,16 @@ public class DBHelper {
 				where.append(" isStarred > 0 ");
 				break;
 			default:
-				if (isCategory) {
-					feedIds.append("SELECT _id FROM ").append(TABLE_FEEDS).append(" WHERE categoryId=").append(id);
+				if (!isCategory && id < -10) {
+					where.append(" _id IN (SELECT articleId FROM ").append(TABLE_ARTICLES2LABELS).append(" WHERE labelId=").append(id).append(") ");
 				} else {
-					feedIds.append(id);
+					if (isCategory) {
+						feedIds.append("SELECT _id FROM ").append(TABLE_FEEDS).append(" WHERE categoryId=").append(id);
+					} else {
+						feedIds.append(id);
+					}
+					where.append(" feedId IN (").append(feedIds).append(") ");
 				}
-				where.append(" feedId IN (").append(feedIds).append(") ");
 				break;
 		}
 
@@ -1319,6 +1323,17 @@ public class DBHelper {
 
 				cv.put(COL_UNREAD, unreadCount);
 				db.update(TABLE_FEEDS, cv, "_id=" + feedId, null);
+			}
+
+			// update labels
+			c.close();
+			c = db.rawQuery("SELECT a2l.labelId, count(*) FROM " + TABLE_ARTICLES2LABELS + " a2l, " + TABLE_ARTICLES + " a " + "WHERE a2l.articleId = a._id AND a.isUnread > 0 GROUP BY a2l.labelId", null);
+			while (c.moveToNext()) {
+				int labelId = c.getInt(0);
+				int unreadCount = c.getInt(1);
+
+				cv.put(COL_UNREAD, unreadCount);
+				db.update(TABLE_FEEDS, cv, "_id=" + labelId, null);
 			}
 			db.setTransactionSuccessful();
 		} finally {
@@ -1877,7 +1892,11 @@ public class DBHelper {
 
 					default:
 						// Probably a label...
-						selection.append(" and feedId=?");
+						if (id < -10) {
+							selection.append(" AND _id IN (SELECT articleId FROM ").append(TABLE_ARTICLES2LABELS).append(" WHERE labelId=?)");
+						} else {
+							selection.append(" and feedId=?");
+						}
 				}
 			} else {
 				// feeds

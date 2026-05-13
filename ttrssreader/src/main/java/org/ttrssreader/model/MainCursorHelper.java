@@ -47,9 +47,9 @@ abstract class MainCursorHelper {
 				// normal query
 				cursor = createCursor(db, false, false);
 
-				// (categoryId == -2 || feedId >= 0): Normal feeds
+				// (categoryId == -2 || feedId >= 0 || feedId < -10): Normal feeds / Labels
 				// (categoryId == 0 || feedId == Integer.MIN_VALUE): Uncategorized Feeds
-				if ((categoryId == -2 || feedId >= 0) || (categoryId == 0 || feedId == Integer.MIN_VALUE)) {
+				if ((categoryId == -2 || feedId >= 0 || feedId < -10) || (categoryId == 0 || feedId == Integer.MIN_VALUE)) {
 					if (Controller.getInstance().onlyUnread() && !checkUnread(cursor)) {
 
 						// Close old cursor safely
